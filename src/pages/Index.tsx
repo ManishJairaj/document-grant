@@ -30,7 +30,7 @@ const Index = () => {
           <div className="w-9 h-9 rounded-lg gradient-primary flex items-center justify-center">
             <Brain className="w-5 h-5 text-primary-foreground" />
           </div>
-          <span className="text-xl font-display font-bold text-foreground">Solasta</span>
+          <span className="text-xl font-display font-bold text-foreground">FinGenie</span>
         </div>
         <Link to="/auth">
           <Button variant="outline">Get Started</Button>
@@ -45,16 +45,16 @@ const Index = () => {
           transition={{ duration: 0.7 }}
         >
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-accent text-accent-foreground text-sm font-medium mb-6">
-            <Sparkles className="w-4 h-4" /> GenAI-powered adaptive learning
+            <Sparkles className="w-4 h-4" /> GenAI-powered financial literacy
           </div>
           <h1 className="text-5xl md:text-6xl font-display font-bold text-foreground leading-tight mb-6">
-            Learn anything, <br />
+            Master your finances, <br />
             <span className="bg-gradient-to-r from-primary to-info bg-clip-text text-transparent">
               your way
             </span>
           </h1>
           <p className="text-lg text-muted-foreground max-w-xl mx-auto mb-10">
-            Solasta uses AI to create personalized explanations, quizzes, and recommendations that adapt to your unique learning journey.
+            FinGenie uses AI to create personalized explanations, quizzes, and recommendations that adapt to your unique financial empowerment journey.
           </p>
           <Link to="/auth">
             <Button size="lg" className="gradient-primary text-primary-foreground text-base px-8 h-12">
@@ -88,7 +88,7 @@ const Index = () => {
       {/* Footer */}
       <footer className="border-t border-border py-8">
         <div className="container text-center text-sm text-muted-foreground">
-          Built for GDG Hackathon Solasta 2026 — IIITDM Kurnool
+          Built for GDG Hackathon FinGenie 2026 — IIITDM Kurnool
         </div>
       </footer>
     </div>

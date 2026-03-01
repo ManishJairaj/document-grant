@@ -151,7 +151,7 @@ const Learn = () => {
           <Input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder={topicFromUrl ? `Ask about ${topicFromUrl.replace("-", " ")}...` : "What would you like to learn about?"}
+            placeholder={topicFromUrl ? `Ask about ${topicFromUrl.replace("-", " ")}...` : "What financial topic would you like to learn about?"}
             className="h-12 text-base"
             onKeyDown={(e) => e.key === "Enter" && handleAsk()}
           />

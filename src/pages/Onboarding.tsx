@@ -11,7 +11,7 @@ const steps = [
   { title: "What's your name?", subtitle: "Let's personalize your experience" },
   { title: "Your experience level", subtitle: "We'll tailor content to match your knowledge" },
   { title: "How do you learn best?", subtitle: "Choose your preferred explanation style" },
-  { title: "Pick your domain", subtitle: "What would you like to learn about?" },
+  { title: "Pick your financial focus", subtitle: "What area of finance do you want to master first?" },
 ];
 
 const levels = [
@@ -28,12 +28,12 @@ const styles = [
 ];
 
 const domains = [
-  { value: "programming", label: "Programming", emoji: "💻" },
-  { value: "data-science", label: "Data Science", emoji: "📊" },
-  { value: "finance", label: "Financial Literacy", emoji: "💰" },
-  { value: "science", label: "Science", emoji: "🔬" },
-  { value: "math", label: "Mathematics", emoji: "📐" },
-  { value: "career", label: "Career Development", emoji: "🚀" },
+  { value: "budgeting", label: "Budgeting & Saving", emoji: "💰" },
+  { value: "investing", label: "Investing 101", emoji: "📈" },
+  { value: "credit-debt", label: "Debt & Credit", emoji: "💳" },
+  { value: "taxes", label: "Taxes & Planning", emoji: "📝" },
+  { value: "behavioral", label: "Behavioral Finance", emoji: "🧠" },
+  { value: "crypto", label: "Crypto & Web3", emoji: "🪙" },
 ];
 
 const Onboarding = () => {
@@ -41,7 +41,7 @@ const Onboarding = () => {
   const [name, setName] = useState("");
   const [level, setLevel] = useState("beginner");
   const [style, setStyle] = useState("simple");
-  const [domain, setDomain] = useState("programming");
+  const [domain, setDomain] = useState("budgeting");
   const updateProfile = useUpdateProfile();
   const navigate = useNavigate();
 

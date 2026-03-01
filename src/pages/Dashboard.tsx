@@ -12,12 +12,12 @@ import { BookOpen, Clock, Star, TrendingUp, ArrowRight, Zap } from "lucide-react
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip } from "recharts";
 
 const topics = [
-  { id: "variables", label: "Variables & Types", emoji: "📦", color: "from-primary to-info" },
-  { id: "functions", label: "Functions", emoji: "⚡", color: "from-primary to-success" },
-  { id: "loops", label: "Loops & Iteration", emoji: "🔄", color: "from-secondary to-warning" },
-  { id: "data-structures", label: "Data Structures", emoji: "🗂️", color: "from-info to-primary" },
-  { id: "algorithms", label: "Algorithms", emoji: "🧮", color: "from-success to-primary" },
-  { id: "oop", label: "Object-Oriented", emoji: "🏗️", color: "from-warning to-secondary" },
+  { id: "budgeting-basics", label: "Budgeting Basics", emoji: "💰", color: "from-primary to-info" },
+  { id: "building-credit", label: "Building Credit", emoji: "💳", color: "from-primary to-success" },
+  { id: "investing", label: "Investing Fundamentals", emoji: "📈", color: "from-secondary to-warning" },
+  { id: "managing-debt", label: "Managing Debt", emoji: "📉", color: "from-info to-primary" },
+  { id: "savings-goals", label: "Savings Goals", emoji: "🎯", color: "from-success to-primary" },
+  { id: "taxes-planning", label: "Taxes & Planning", emoji: "📝", color: "from-warning to-secondary" },
 ];
 
 const Dashboard = () => {
@@ -74,7 +74,7 @@ const Dashboard = () => {
           <div>
             <h1 className="text-3xl font-display font-bold text-foreground">{greeting} 👋</h1>
             <p className="text-muted-foreground mt-1">
-              Keep going — every session makes your AI tutor smarter for you.
+              Keep going — every session strengthens your financial health score.
             </p>
           </div>
           <Link to="/learn">
