@@ -11,7 +11,7 @@ serve(async (req) => {
   }
 
   try {
-    const { query, topic, experienceLevel, explanationStyle, preferredDomain } = await req.json();
+    const { query, topic, experienceLevel, explanationStyle, preferredDomain, history = [] } = await req.json();
 
     const systemPrompt = `You are an adaptive learning tutor. The user is at ${experienceLevel} level.
 They prefer ${explanationStyle} explanations in the domain of ${preferredDomain || "general knowledge"}.
@@ -49,6 +49,7 @@ ${explanationStyle === 'examples' ? 'Lead with practical examples before theory.
         model: "google/gemini-3-flash-preview",
         messages: [
           { role: "system", content: systemPrompt },
+          ...history,
           { role: "user", content: query },
         ],
         temperature: 0.7,
