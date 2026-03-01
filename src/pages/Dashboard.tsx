@@ -136,8 +136,8 @@ const Dashboard = () => {
                   <BarChart data={chartData}>
                     <XAxis dataKey="name" tick={{ fontSize: 12 }} />
                     <YAxis tick={{ fontSize: 12 }} />
-                    <Tooltip />
-                    <Bar dataKey="sessions" fill="hsl(162, 63%, 35%)" radius={[6, 6, 0, 0]} />
+                    <Tooltip cursor={{ fill: 'hsl(var(--muted))' }} />
+                    <Bar dataKey="sessions" fill="hsl(var(--primary))" radius={[6, 6, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               ) : (
