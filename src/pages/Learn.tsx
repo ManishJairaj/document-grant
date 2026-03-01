@@ -5,6 +5,7 @@ import DashboardLayout from "@/components/DashboardLayout";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
 import { supabase } from "@/integrations/supabase/client";
+import type { Json } from "@/integrations/supabase/types";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -121,7 +122,7 @@ const Learn = () => {
           session_id: currentSessionId,
           topic: topicFromUrl || "general",
           explanation: aiResponse.explanation,
-          quiz: aiResponse.quiz as unknown as any,
+          quiz: aiResponse.quiz as unknown as Json,
           recommendations: aiResponse.recommendations,
         }]);
       }
@@ -132,7 +133,7 @@ const Learn = () => {
         topic: topicFromUrl || "general",
         time_spent: Math.round((Date.now() - startTimeRef.current) / 1000),
       }]);
-    } catch (err: any) {
+    } catch (err: unknown) {
       toast.error("Failed to generate content. Please try again.");
       console.error(err);
     } finally {

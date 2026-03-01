@@ -36,8 +36,9 @@ const Profile = () => {
         preferred_domain: domain,
       });
       toast.success("Profile updated!");
-    } catch (err: any) {
-      toast.error(err.message);
+    } catch (err: unknown) {
+      const error = err as Error;
+      toast.error(error.message || 'An error occurred');
     }
   };
 
@@ -92,13 +93,7 @@ const Profile = () => {
               <Select value={domain} onValueChange={setDomain}>
                 <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="programming">Programming</SelectItem>
-                  <SelectItem value="data-science">Data Science</SelectItem>
                   <SelectItem value="finance">Financial Literacy</SelectItem>
-                  <SelectItem value="science">Science</SelectItem>
-                  <SelectItem value="math">Mathematics</SelectItem>
-                  <SelectItem value="career">Career Development</SelectItem>
-                  <SelectItem value="general">General</SelectItem>
                 </SelectContent>
               </Select>
             </div>

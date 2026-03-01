@@ -1,3 +1,4 @@
+// @ts-expect-error: Deno is available in Supabase Edge Functions
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 const corsHeaders = {
@@ -5,7 +6,7 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-serve(async (req) => {
+serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -36,6 +37,7 @@ ${explanationStyle === 'detailed' ? 'Provide comprehensive, in-depth explanation
 ${explanationStyle === 'visual' ? 'Use analogies, mental models, and describe visual representations.' : ''}
 ${explanationStyle === 'examples' ? 'Lead with practical examples before theory.' : ''}`;
 
+    // @ts-expect-error: Deno is available in Supabase Edge Functions
     const apiKey = Deno.env.get("LOVABLE_API_KEY");
     if (!apiKey) throw new Error("LOVABLE_API_KEY not configured");
 
@@ -86,7 +88,7 @@ ${explanationStyle === 'examples' ? 'Lead with practical examples before theory.
   } catch (error) {
     console.error("Error:", error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error" }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }

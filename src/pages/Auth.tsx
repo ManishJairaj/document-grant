@@ -28,8 +28,9 @@ const Auth = () => {
         await signUp(email, password, name);
         toast.success("Account created! Please check your email to verify.");
       }
-    } catch (err: any) {
-      toast.error(err.message);
+    } catch (err: unknown) {
+      const error = err as Error;
+      toast.error(error.message || 'An error occurred');
     } finally {
       setLoading(false);
     }

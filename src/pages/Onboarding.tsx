@@ -56,8 +56,9 @@ const Onboarding = () => {
       });
       toast.success("Welcome aboard! Let's start learning.");
       navigate("/dashboard");
-    } catch (err: any) {
-      toast.error(err.message);
+    } catch (err: unknown) {
+      const error = err as Error;
+      toast.error(error.message || 'An error occurred');
     }
   };
 
