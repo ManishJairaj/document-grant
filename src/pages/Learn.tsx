@@ -47,6 +47,7 @@ const Learn = () => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [sessions, setSessions] = useState<UserSession[]>([]);
   const [sessionId, setSessionId] = useState<string | null>(null);
+  const [difficultyAdjustment, setDifficultyAdjustment] = useState<"easier" | "harder" | "none">("none");
   const [quizAnswers, setQuizAnswers] = useState<Record<number, string>>({});
   const [quizSubmitted, setQuizSubmitted] = useState(false);
   const [rating, setRating] = useState(0);
@@ -82,6 +83,7 @@ const Learn = () => {
     setQuizSubmitted(false);
     setRating(0);
     setFeedbackSent(false);
+    setDifficultyAdjustment("none");
   };
 
   const loadSession = (session: UserSession) => {
@@ -154,9 +156,13 @@ const Learn = () => {
           experienceLevel: profile?.experience_level || "beginner",
           explanationStyle: profile?.explanation_style || "simple",
           preferredDomain: profile?.preferred_domain || "general",
+          difficultyAdjustment,
           history: historyPayload
         },
       });
+
+      // Reset difficulty adjustment after sending it
+      setDifficultyAdjustment("none");
 
       if (funcError) throw funcError;
 
@@ -229,6 +235,16 @@ const Learn = () => {
     const correct = msg.response.quiz.filter((q, i) => quizAnswers[i] === q.correctAnswer).length;
     const score = Math.round((correct / msg.response.quiz.length) * 100);
     toast.success(`You scored ${score}% (${correct}/${msg.response.quiz.length})`);
+    
+    if (score <= 50) {
+      setDifficultyAdjustment("easier");
+      toast.info("Don't worry! The difficulty level for your next question has been reduced.", { duration: 5000 });
+    } else if (score === 100) {
+      setDifficultyAdjustment("harder");
+      toast.success("Great job! The difficulty level for your next question will be slightly increased.", { duration: 5000 });
+    } else {
+      setDifficultyAdjustment("none");
+    }
   };
 
   const handleFeedback = async (responseIndex: number) => {
@@ -407,6 +423,19 @@ const Learn = () => {
                             >
                               Submit Answers
                             </Button>
+                          )}
+                          
+                          {quizSubmitted && difficultyAdjustment === "easier" && index === messages.length - 1 && (
+                            <div className="mt-4 p-3 bg-warning/20 border border-warning/50 rounded-md text-sm text-foreground flex items-center gap-2">
+                              <Star className="w-4 h-4 text-warning" />
+                              Don't worry, the difficulty for your next question has been reduced!
+                            </div>
+                          )}
+                           {quizSubmitted && difficultyAdjustment === "harder" && index === messages.length - 1 && (
+                            <div className="mt-4 p-3 bg-success/20 border border-success/50 rounded-md text-sm text-foreground flex items-center gap-2">
+                              <Sparkles className="w-4 h-4 text-success" />
+                              Perfect score! The difficulty for your next question will be increased.
+                            </div>
                           )}
                         </CardContent>
                       </Card>

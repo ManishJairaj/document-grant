@@ -12,11 +12,18 @@ serve(async (req: Request) => {
   }
 
   try {
-    const { query, topic, experienceLevel, explanationStyle, preferredDomain, history = [] } = await req.json();
+    const { query, topic, experienceLevel, explanationStyle, preferredDomain, difficultyAdjustment, history = [] } = await req.json();
+
+    let difficultyInstruction = "";
+    if (difficultyAdjustment === "easier") {
+        difficultyInstruction = "\nIMPORTANT: The user struggled with the last quiz. Please REDUCE the conceptual difficulty, simplify your explanation further, and make the next quiz much easier than usual.";
+    } else if (difficultyAdjustment === "harder") {
+        difficultyInstruction = "\nIMPORTANT: The user aced the last quiz perfectly. Please slightly INCREASE the conceptual difficulty and make the next quiz a bit more challenging.";
+    }
 
     const systemPrompt = `You are an adaptive learning tutor. The user is at ${experienceLevel} level.
 They prefer ${explanationStyle} explanations in the domain of ${preferredDomain || "general knowledge"}.
-The current topic is: ${topic}.
+The current topic is: ${topic}.${difficultyInstruction}
 
 Respond ONLY with valid JSON (no markdown, no code fences) in this exact format:
 {
