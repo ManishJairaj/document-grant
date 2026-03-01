@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { Send, Loader2, Star, CheckCircle2, XCircle, Sparkles } from "lucide-react";
+import { Send, Loader2, Star, CheckCircle2, XCircle, Sparkles, MessageSquarePlus, Clock, ChevronRight } from "lucide-react";
 
 interface QuizQuestion {
   question: string;
@@ -30,6 +30,14 @@ interface ChatMessage {
   response?: AIResponse;
 }
 
+interface UserSession {
+  id: string;
+  topic: string;
+  query: string;
+  started_at: string;
+  ai_response?: string;
+}
+
 const Learn = () => {
   const { user } = useAuth();
   const { data: profile } = useProfile();
@@ -37,6 +45,7 @@ const Learn = () => {
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [sessions, setSessions] = useState<UserSession[]>([]);
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [quizAnswers, setQuizAnswers] = useState<Record<number, string>>({});
   const [quizSubmitted, setQuizSubmitted] = useState(false);
@@ -45,6 +54,64 @@ const Learn = () => {
   const startTimeRef = useRef(Date.now());
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const topicFromUrl = searchParams.get("topic") || "";
+
+  useEffect(() => {
+    if (user) {
+      fetchSessions();
+    }
+  }, [user]);
+
+  const fetchSessions = async () => {
+    if (!user) return;
+    const { data } = await supabase
+      .from("user_sessions")
+      .select("*")
+      .eq("user_id", user.id)
+      .order("started_at", { ascending: false });
+    
+    if (data) {
+      setSessions(data);
+    }
+  };
+
+  const startNewChat = () => {
+    setMessages([]);
+    setSessionId(null);
+    setQuery("");
+    setQuizAnswers({});
+    setQuizSubmitted(false);
+    setRating(0);
+    setFeedbackSent(false);
+  };
+
+  const loadSession = (session: UserSession) => {
+    if (session.id === sessionId) return;
+    setSessionId(session.id);
+    setQuizAnswers({});
+    setQuizSubmitted(false);
+    setRating(0);
+    setFeedbackSent(false);
+    
+    if (session.ai_response) {
+      try {
+        const parsedMessages = JSON.parse(session.ai_response);
+        if (Array.isArray(parsedMessages)) {
+          setMessages(parsedMessages);
+        } else {
+          // Fallback for older single-response sessions
+          setMessages([
+            { role: "user", content: session.query },
+            { role: "assistant", content: parsedMessages.explanation, response: parsedMessages }
+          ]);
+        }
+      } catch (e) {
+        console.error("Failed to parse session messages", e);
+        setMessages([]);
+      }
+    } else {
+      setMessages([{ role: "user", content: session.query }]);
+    }
+  };
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -95,6 +162,9 @@ const Learn = () => {
 
       const aiResponse: AIResponse = funcData;
       setMessages([...updatedMessages, { role: "assistant", content: aiResponse.explanation, response: aiResponse }]);
+      
+      // Remove loading indicator immediately so user doesn't wait for database inserts
+      setLoading(false);
 
       // Create session if it doesn't exist
       let currentSessionId = sessionId;
@@ -112,6 +182,7 @@ const Learn = () => {
         if (sess) {
           currentSessionId = sess.id;
           setSessionId(currentSessionId);
+          setSessions(prev => [sess, ...prev]);
         }
       }
 
@@ -133,6 +204,16 @@ const Learn = () => {
         topic: topicFromUrl || "general",
         time_spent: Math.round((Date.now() - startTimeRef.current) / 1000),
       }]);
+
+      // Update session with latest messages array stringified
+      const finalMessages = [...updatedMessages, { role: "assistant", content: aiResponse.explanation, response: aiResponse }];
+      if (currentSessionId) {
+        await supabase
+          .from("user_sessions")
+          .update({ ai_response: JSON.stringify(finalMessages) })
+          .eq("id", currentSessionId);
+      }
+
     } catch (err: unknown) {
       toast.error("Failed to generate content. Please try again.");
       console.error(err);
@@ -171,31 +252,85 @@ const Learn = () => {
 
   return (
     <DashboardLayout>
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="max-w-3xl mx-auto"
-      >
-        <h1 className="text-3xl font-display font-bold text-foreground mb-2">
-          <Sparkles className="inline w-7 h-7 text-secondary mr-2" />
-          FinGenie Chat
-        </h1>
-        <p className="text-muted-foreground mb-6">
-          Ask anything — your AI tutor adapts explanations and quizzes to your level.
-        </p>
+      <div className="flex flex-col md:flex-row gap-6 w-full h-[calc(100vh-140px)]">
+        
+        {/* Sidebar for History */}
+        <div className="w-full md:w-64 shrink-0 flex flex-col gap-4">
+          <Button 
+            onClick={startNewChat}
+            variant="outline" 
+            className="w-full flex items-center justify-start gap-2 h-12 border-primary/20 text-primary hover:bg-primary/5 shadow-sm"
+          >
+            <MessageSquarePlus className="w-5 h-5" />
+            <span className="font-medium text-base">New Chat</span>
+          </Button>
 
-        {/* Chat Interface */}
-        <div className="flex flex-col gap-6 mb-8 max-h-[60vh] overflow-y-auto px-2 py-4 rounded-xl border border-border bg-card/30">
-          <AnimatePresence>
-            {messages.length === 0 && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="text-center text-muted-foreground p-8"
-              >
-                No messages yet. Ask a question below to start learning!
-              </motion.div>
-            )}
+          <Card className="flex-1 shadow-card border border-border/50 bg-card/40 flex flex-col overflow-hidden">
+            <CardHeader className="py-4 px-4 border-b border-border/50 bg-muted/10">
+              <CardTitle className="text-sm font-semibold text-muted-foreground flex items-center gap-2">
+                <Clock className="w-4 h-4" /> Recent Chats
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-0 flex-1 overflow-y-auto custom-scrollbar">
+              <div className="flex flex-col">
+                {sessions.length === 0 ? (
+                  <div className="p-4 text-sm text-muted-foreground text-center">
+                    No recent chats. Start learning!
+                  </div>
+                ) : (
+                  sessions.map((session) => (
+                    <button
+                      key={session.id}
+                      onClick={() => loadSession(session)}
+                      className={`w-full text-left p-4 border-b border-border/30 transition-colors flex items-center justify-between group hover:bg-muted/30 ${
+                        session.id === sessionId ? "bg-muted/50 border-l-4 border-l-primary" : "border-l-4 border-l-transparent"
+                      }`}
+                    >
+                      <div className="flex flex-col gap-1 pr-4 overflow-hidden">
+                        <span className="text-sm font-medium text-foreground truncate">{session.query}</span>
+                        <span className="text-xs text-muted-foreground truncate">{new Date(session.started_at).toLocaleDateString()} • {session.topic}</span>
+                      </div>
+                      <ChevronRight className={`w-4 h-4 text-muted-foreground transition-transform ${session.id === sessionId ? "opacity-100 translate-x-1 text-primary" : "opacity-0 group-hover:opacity-100"}`} />
+                    </button>
+                  ))
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Main Chat Area */}
+        <motion.div
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          className="flex-1 flex flex-col bg-card/30 border border-border rounded-xl shadow-sm overflow-hidden"
+        >
+          <div className="p-6 pb-4 border-b border-border/50 bg-muted/10">
+            <h1 className="text-2xl font-display font-bold text-foreground">
+              <Sparkles className="inline w-6 h-6 text-secondary mr-2" />
+              FinGenie Chat
+            </h1>
+            <p className="text-sm text-muted-foreground mt-1">
+              Ask anything — your AI tutor adapts explanations and quizzes to your level.
+            </p>
+          </div>
+
+          {/* Chat Interface */}
+          <div className="flex-1 overflow-y-auto px-4 py-6 custom-scrollbar">
+            <AnimatePresence>
+              {messages.length === 0 && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="h-full flex flex-col items-center justify-center text-center text-muted-foreground p-8"
+                >
+                  <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                     <Sparkles className="w-8 h-8 text-primary" />
+                  </div>
+                  <p className="font-medium text-foreground text-lg mb-2">Ready to expand your financial knowledge?</p>
+                  <p className="max-w-sm text-sm">Type a question below to start a new customized lesson plan.</p>
+                </motion.div>
+              )}
 
             {messages.map((msg, index) => (
               <motion.div
@@ -337,26 +472,29 @@ const Learn = () => {
             )}
             <div ref={messagesEndRef} />
           </AnimatePresence>
-        </div>
+          </div>
 
-        {/* Query input */}
-        <div className="flex gap-3 position-sticky bottom-6">
-          <Input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder={topicFromUrl ? `Ask about ${topicFromUrl.replace("-", " ")}...` : "What financial topic would you like to learn about?"}
-            className="h-12 text-base"
-            onKeyDown={(e) => e.key === "Enter" && handleAsk()}
-          />
-          <Button
-            onClick={handleAsk}
-            disabled={loading || !query.trim()}
-            className="gradient-primary text-primary-foreground h-12 px-6"
-          >
-            {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
-          </Button>
-        </div>
-      </motion.div>
+          {/* Query input */}
+          <div className="p-4 border-t border-border/50 bg-background">
+            <div className="flex gap-3 relative max-w-4xl mx-auto">
+              <Input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder={topicFromUrl ? `Ask about ${topicFromUrl.replace("-", " ")}...` : "What financial topic would you like to learn about?"}
+                className="h-14 text-base pr-16 bg-muted/50 border-primary/20 focus-visible:ring-primary/50 shadow-inner"
+                onKeyDown={(e) => e.key === "Enter" && handleAsk()}
+              />
+              <Button
+                onClick={handleAsk}
+                disabled={loading || !query.trim()}
+                className="absolute right-2 top-2 h-10 w-10 p-0 rounded-md gradient-primary text-primary-foreground shadow-md transition-transform hover:scale-105 active:scale-95"
+              >
+                {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5 ml-1" />}
+              </Button>
+            </div>
+          </div>
+        </motion.div>
+      </div>
     </DashboardLayout>
   );
 };
